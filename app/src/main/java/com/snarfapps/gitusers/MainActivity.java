@@ -40,7 +40,8 @@ import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity {
     RequestQueue queue;
-    int currentUsersPage = 0;
+    int nextPageIndex = 0;
+
     List<User> users;
     AppDatabase db;
 
@@ -153,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
 
     void searchUsers(final String key){
         ArrayList<User> searchedUsers = (ArrayList<User>) users.stream().filter(
-                p -> p.username.contains(key))
+                p -> (new String(p.id+"").contains(key) || p.username.contains(key)))
                 .collect(Collectors.toList());
 
         Log.e("Searched users", "Count: "+searchedUsers.size());
@@ -165,10 +166,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void loadMoreUsers(){
-        String url = "https://api.github.com/users?since="+currentUsersPage;
+
+        String url = "https://api.github.com/users?since="+nextPageIndex;
         pbLoading.setVisibility(View.VISIBLE);
         isLoading = true;
-        Log.e("Loading", "Loading from: "+currentUsersPage);
+        Log.e("Loading", "Loading from: "+nextPageIndex);
 
         StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
@@ -189,7 +191,8 @@ public class MainActivity extends AppCompatActivity {
 
                 Log.e("New Users", "Added new users "+r.size()+ " First: "+r.get(0).username + " Last: "+ r.get(r.size()-1).username);
 
-                currentUsersPage++;
+                //get since paramater for next batch of users
+                nextPageIndex = r.get(r.size()-1).id;
                 adapter.notifyDataSetChanged();
 
 

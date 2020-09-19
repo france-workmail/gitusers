@@ -32,7 +32,7 @@
                 android:id="@+id/etSearch"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:hint="Search user"
+                android:hint="Search username or id"
                 android:inputType="textPersonName"
                 android:singleLine="false"
                 android:layout_margin="4dp"

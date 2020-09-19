@@ -54,24 +54,25 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
 
     public static class GitUserViewHolder extends RecyclerView.ViewHolder{
 
-        TextView tvUsername;
+        TextView tvUsername,tvUserID;
         ImageView ivAvatar;
-        Context holderContext;
         public GitUserViewHolder(@NonNull View itemView, Context ctx) {
             super(itemView);
 
             tvUsername = itemView.findViewById(R.id.tvUsername);
             ivAvatar = itemView.findViewById(R.id.ivAvatar);
-            this.holderContext = ctx;
+            tvUserID = itemView.findViewById(R.id.tvUserId);
 
         }
         public void bind(User u, int pos){
 
 
-            Glide.with(holderContext).clear(ivAvatar);
+            Glide.with(itemView.getContext()).clear(ivAvatar);
 
-            tvUsername.setText( pos+" "+u.username);
-            Glide.with(holderContext).load(u.avatarUrl).into(ivAvatar);
+            tvUsername.setText(u.username);
+            tvUserID.setText("ID: "+u.id);
+            Glide.with(itemView.getContext()).load(u.avatarUrl)
+                    .into(ivAvatar);
         }
     }
 }

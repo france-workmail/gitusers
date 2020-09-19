@@ -1,6 +1,9 @@
 package com.snarfapps.gitusers;
 
 import android.content.Context;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,9 +13,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.palette.graphics.Palette;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.snarfapps.gitusers.models.User;
 
 import java.util.ArrayList;
@@ -52,10 +61,14 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
     }
 
 
-    public static class GitUserViewHolder extends RecyclerView.ViewHolder{
+    public class GitUserViewHolder extends RecyclerView.ViewHolder{
 
         TextView tvUsername,tvUserID;
         ImageView ivAvatar;
+
+
+
+
         public GitUserViewHolder(@NonNull View itemView, Context ctx) {
             super(itemView);
 
@@ -72,6 +85,28 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
             tvUsername.setText(u.username);
             tvUserID.setText("ID: "+u.id);
             Glide.with(itemView.getContext()).load(u.avatarUrl)
+                    /**
+                     * Set image inversion every 4th person
+                     */
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+
+                            //Check if user pos is divisible by 4
+                            if( ((pos+1) % 4) == 0) {
+                                ivAvatar.setColorFilter(new ColorMatrixColorFilter(Constants.NEGATIVE));
+                                Log.e("INVERT", "Inverting position "+pos);
+                            }
+                            else
+                                ivAvatar.setColorFilter(null);
+                            return false;
+                        }
+                    })
                     .into(ivAvatar);
         }
     }

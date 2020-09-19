@@ -1,15 +1,18 @@
 package com.snarfapps.gitusers;
 
+import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.snarfapps.gitusers.models.User;
 
 import java.util.ArrayList;
@@ -32,7 +35,7 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
     public GitUserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_user,parent,false);
 
-        return new GitUserViewHolder(v);
+        return new GitUserViewHolder(v, parent.getContext());
     }
 
     @Override
@@ -49,14 +52,20 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
     public static class GitUserViewHolder extends RecyclerView.ViewHolder{
 
         TextView tvUsername;
-        public GitUserViewHolder(@NonNull View itemView) {
+        ImageView ivAvatar;
+        Context holderContext;
+        public GitUserViewHolder(@NonNull View itemView, Context ctx) {
             super(itemView);
 
             tvUsername = itemView.findViewById(R.id.tvUsername);
+            ivAvatar = itemView.findViewById(R.id.ivAvatar);
+            this.holderContext = ctx;
+
         }
         public void bind(User u){
             tvUsername.setText(u.username);
             Log.e("Setting user text", ""+u.username);
+            Glide.with(holderContext).load(u.avatarUrl).into(ivAvatar);
         }
     }
 }

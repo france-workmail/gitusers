@@ -1,11 +1,17 @@
 package com.snarfapps.gitusers;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -14,6 +20,8 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.snarfapps.gitusers.db.AppDatabase;
 import com.snarfapps.gitusers.models.User;
 
@@ -21,64 +29,138 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity {
+    RequestQueue queue;
+    int currentUsersPage = 0;
+    List<User> users;
+    AppDatabase db;
 
+    RecyclerView rvUsers;
+    ProgressBar pbLoading;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
 
-        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+         db = Room.databaseBuilder(getApplicationContext(),
                 AppDatabase.class, "git-users-db").build();
+         queue = Volley.newRequestQueue(this);
 
 
-        List<User> users =  db.userDao().getAllUsers();
+        /**
+         * Setup recyclerview
+         */
+
+        users = new ArrayList<>();
+        rvUsers = findViewById(R.id.rvUsers);
+        rvUsers.setLayoutManager(new LinearLayoutManager(this));
+
+        final GitUsersAdapter adapter = new GitUsersAdapter(users);
+
+        rvUsers.setAdapter(adapter);
 
 
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "https://api.github.com/users?since=0";
+        pbLoading = findViewById(R.id.pbLoading);
+
+        if(users.size() == 0)
+            new InitiateDbTask().execute();
+        else
+            loadMoreUsers();
 
 
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+        rvUsers.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onResponse(JSONArray response) {
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
 
-               for (int iterator = 0 ; iterator < response.length();iterator++){
-                   JSONObject userObj;
-                   try {
-                        userObj = response.getJSONObject(iterator);
-                   } catch (JSONException e) {
-                       e.printStackTrace();
-                       continue;
-                   }
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
 
-                   if(userObj!=null){
-                       User u = new User();
-                       try {
-                           Log.e("New User", userObj.getString("login"));
-                       } catch (JSONException e) {
-                           e.printStackTrace();
-                       }
-                   }
+                LinearLayoutManager layoutManager = (LinearLayoutManager) rvUsers.getLayoutManager();
 
-               }
+                int visibleItemCount = layoutManager.getChildCount();
+                int totalItemCount = layoutManager.getItemCount();
+                int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+
+                if (!isLoading ) {
+                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount
+                            && firstVisibleItemPosition >= 0) {
+                        loadMoreUsers();
+                    }
+                }
+            }
+        });
+    }
+    private boolean isLoading = false;
+//    private boolean isLastPage = false;
+//    private int PAGE_SIZE = 30;
+
+
+
+
+
+    class InitiateDbTask extends AsyncTask<Void,Void, Void>{
+        @Override
+        protected Void doInBackground(Void... voids) {
+            users = db.userDao().getAllUsers();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            loadMoreUsers();
+        }
+    }
+
+    void loadMoreUsers(){
+        String url = "https://api.github.com/users?since="+currentUsersPage;
+        pbLoading.setVisibility(View.VISIBLE);
+        isLoading = true;
+
+        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+
+                isLoading = false;
+                pbLoading.setVisibility(View.GONE);
+
+                Type typeToken = new TypeToken<ArrayList<User>>(){}.getType();
+
+                ArrayList<User> r = new Gson().fromJson(response,typeToken);
+
+
+                GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
+
+                adapter.getData().addAll(r);
+                users = adapter.getData();
+
+
+                Log.e("New Users", "Added new users "+r.size()+ " First: "+r.get(0).username + " Last: "+ r.get(r.size()-1).username);
+
+                currentUsersPage++;
+                adapter.notifyDataSetChanged();
+
+
+
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                Log.e("Volley err", error.getLocalizedMessage());
+                isLoading = false;
+                pbLoading.setVisibility(View.GONE);
 
             }
         });
-
-
         queue.add(request);
     }
-
-
 
 }

@@ -29,6 +29,9 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
     public List<User> getData(){
         return this.data;
     }
+    public void setData(List<User> data){
+        this.data = data;
+    }
 
     @NonNull
     @Override
@@ -40,7 +43,7 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
 
     @Override
     public void onBindViewHolder(@NonNull GitUsersAdapter.GitUserViewHolder holder, int position) {
-            holder.bind(data.get(position));
+            holder.bind(data.get(position), position);
     }
 
     @Override
@@ -62,9 +65,12 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
             this.holderContext = ctx;
 
         }
-        public void bind(User u){
-            tvUsername.setText(u.username);
-            Log.e("Setting user text", ""+u.username);
+        public void bind(User u, int pos){
+
+
+            Glide.with(holderContext).clear(ivAvatar);
+
+            tvUsername.setText( pos+" "+u.username);
             Glide.with(holderContext).load(u.avatarUrl).into(ivAvatar);
         }
     }

@@ -8,9 +8,12 @@ import androidx.room.Room;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 
 import com.android.volley.Request;
@@ -32,6 +35,7 @@ import org.json.JSONObject;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -90,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 int totalItemCount = layoutManager.getItemCount();
                 int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
-                if (!isLoading ) {
+                if (!isLoading && !isSearching) {
                     if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount
                             && firstVisibleItemPosition >= 0) {
                         loadMoreUsers();
@@ -98,10 +102,37 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        ((EditText)findViewById(R.id.etSearch)).addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                if(s.length() != 0) {
+                    searchUsers(s.toString());
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+                if(s.length() == 0) {
+                    isSearching = false;
+                    //return the data set
+                    GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
+                    adapter.setData(users);
+                    adapter.notifyDataSetChanged();
+                }
+
+            }
+        });
     }
     private boolean isLoading = false;
-//    private boolean isLastPage = false;
-//    private int PAGE_SIZE = 30;
+    private boolean isSearching = false;
 
 
 
@@ -120,10 +151,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    void searchUsers(final String key){
+        ArrayList<User> searchedUsers = (ArrayList<User>) users.stream().filter(
+                p -> p.username.contains(key))
+                .collect(Collectors.toList());
+
+        Log.e("Searched users", "Count: "+searchedUsers.size());
+
+        isSearching = true;
+        GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
+        adapter.setData(searchedUsers);
+        adapter.notifyDataSetChanged();
+    }
+
     void loadMoreUsers(){
         String url = "https://api.github.com/users?since="+currentUsersPage;
         pbLoading.setVisibility(View.VISIBLE);
         isLoading = true;
+        Log.e("Loading", "Loading from: "+currentUsersPage);
 
         StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
@@ -133,7 +178,6 @@ public class MainActivity extends AppCompatActivity {
                 pbLoading.setVisibility(View.GONE);
 
                 Type typeToken = new TypeToken<ArrayList<User>>(){}.getType();
-
                 ArrayList<User> r = new Gson().fromJson(response,typeToken);
 
 

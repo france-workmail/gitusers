@@ -11,4 +11,6 @@ public class Constants {
             0,     0, -1.0f,    0, 255, // b
             0,     0,     0, 1.0f,   0  // a
     };
+
+    public static final String GET_USERS_URL = "https://api.github.com/users?since=";
 }

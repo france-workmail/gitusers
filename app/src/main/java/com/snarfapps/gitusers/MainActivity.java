@@ -168,8 +168,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void searchUsers(final String key){
-        if(isLoading) return;
+        if(isLoading) return; //disable search when the list is loading
 
+        //Enable searching for both user id and username
         ArrayList<User> searchedUsers = (ArrayList<User>) users.stream().filter(
                 p -> (new String(p.id+"").contains(key) || p.username.contains(key)))
                 .collect(Collectors.toList());
@@ -184,45 +185,40 @@ public class MainActivity extends AppCompatActivity {
 
     void loadMoreUsers(){
 
-        String url = "https://api.github.com/users?since="+nextPageIndex;
+        String url =  Constants.GET_USERS_URL +nextPageIndex;
         pbLoading.setVisibility(View.VISIBLE);
         isLoading = true;
         Log.e("Loading", "Loading from: "+nextPageIndex);
 
-        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
+        StringRequest request = new StringRequest(Request.Method.GET, url, response -> {
+            isLoading = false;
+            pbLoading.setVisibility(View.GONE);
 
-                isLoading = false;
-                pbLoading.setVisibility(View.GONE);
-
-                Type typeToken = new TypeToken<ArrayList<User>>(){}.getType();
-                ArrayList<User> r = new Gson().fromJson(response,typeToken);
+            Type typeToken = new TypeToken<ArrayList<User>>(){}.getType();
+            ArrayList<User> r = new Gson().fromJson(response,typeToken);
 
 
-                GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
+            GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
 
-                users.addAll(r);
-                adapter.setData(users);
-
-
-                Log.e("New Users", "Added new users "+r.size()+ " First: "+r.get(0).username + " Last: "+ r.get(r.size()-1).username);
-
-                //get since paramater for next batch of users
-                nextPageIndex = r.get(r.size()-1).id;
-                adapter.notifyDataSetChanged();
+            users.addAll(r);
+            //Set users as data source, in case the previous data
+            //is the dummy users.
+            adapter.setData(users);
 
 
+            Log.e("New Users", "Added new users "+r.size()+ " First: "+r.get(0).username + " Last: "+ r.get(r.size()-1).username);
 
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e("Volley err", error.getLocalizedMessage());
-                isLoading = false;
-                pbLoading.setVisibility(View.GONE);
+            //set since paramater for next batch of users from the last user id
+            nextPageIndex = r.get(r.size()-1).id;
+            adapter.notifyDataSetChanged();
 
-            }
+
+
+        }, error -> {
+            Log.e("Volley err", error.getLocalizedMessage());
+            isLoading = false;
+            pbLoading.setVisibility(View.GONE);
+
         });
         queue.add(request);
     }

@@ -1,6 +1,7 @@
 package com.snarfapps.gitusers;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -14,7 +15,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.palette.graphics.Palette;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -22,6 +22,7 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.snarfapps.gitusers.models.User;
 
 import java.util.ArrayList;
@@ -65,6 +66,7 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
 
         TextView tvUsername,tvUserID;
         ImageView ivAvatar;
+        ShimmerFrameLayout shimmerFrameLayout;
 
 
 
@@ -75,18 +77,33 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
             tvUsername = itemView.findViewById(R.id.tvUsername);
             ivAvatar = itemView.findViewById(R.id.ivAvatar);
             tvUserID = itemView.findViewById(R.id.tvUserId);
-
+            shimmerFrameLayout = itemView.findViewById(R.id.shimmer);
         }
         public void bind(User u, int pos){
 
+            //Check if the currently displyed user is a dummy user
+            if(u.id>=0) {
+                //if not then stop the shimmer effect and
+                //remove the skeleton colors
+                shimmerFrameLayout.hideShimmer();
+                tvUserID.setBackgroundColor(Color.TRANSPARENT);
+                tvUsername.setBackgroundColor(Color.TRANSPARENT);
+            }
+            else return;
+
+
+            /**
+             * Load the actual user data
+             */
 
             Glide.with(itemView.getContext()).clear(ivAvatar);
 
-            tvUsername.setText(u.username);
-            tvUserID.setText("ID: "+u.id);
+            tvUsername.setText(u.username );
+            tvUserID.setText("ID: "+u.id +" "+ (shouldInvertPos(pos)?"(Inverted)":""));
             Glide.with(itemView.getContext()).load(u.avatarUrl)
                     /**
                      * Set image inversion every 4th person
+                     * on the recycler view list
                      */
                     .listener(new RequestListener<Drawable>() {
                         @Override
@@ -98,7 +115,7 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
                         public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
 
                             //Check if user pos is divisible by 4
-                            if( ((pos+1) % 4) == 0) {
+                            if( shouldInvertPos(pos)) {
                                 ivAvatar.setColorFilter(new ColorMatrixColorFilter(Constants.NEGATIVE));
                                 Log.e("INVERT", "Inverting position "+pos);
                             }
@@ -108,6 +125,10 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
                         }
                     })
                     .into(ivAvatar);
+        }
+
+        private boolean shouldInvertPos(int pos){
+            return (((pos+1) % 4) == 0);
         }
     }
 }

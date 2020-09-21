@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
 
     RecyclerView rvUsers;
     ProgressBar pbLoading;
+
+    private ArrayList<User> shimmerUsers;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,13 +65,26 @@ public class MainActivity extends AppCompatActivity {
          */
 
         users = new ArrayList<>();
+
+        /**
+         * The following sets the shimmer skeleton of
+         * the recyclerview
+         */
+        shimmerUsers = new ArrayList<>();
+        for (int dummyCount =0 ; dummyCount < 15 ; dummyCount++){
+            User u = new User();
+            u.id = -1; // unique id to identify that the currently presented
+                        // data on the recycler view is a dummy (See GitUsersAdapter, bind method to see its usage)
+            shimmerUsers.add(u);
+        }
+
         rvUsers = findViewById(R.id.rvUsers);
         rvUsers.setLayoutManager(new LinearLayoutManager(this));
 
-        final GitUsersAdapter adapter = new GitUsersAdapter(users);
+        //use dummy users for shimmering effect
+        final GitUsersAdapter adapter = new GitUsersAdapter(shimmerUsers);
 
         rvUsers.setAdapter(adapter);
-
 
         pbLoading = findViewById(R.id.pbLoading);
 
@@ -153,6 +168,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void searchUsers(final String key){
+        if(isLoading) return;
+
         ArrayList<User> searchedUsers = (ArrayList<User>) users.stream().filter(
                 p -> (new String(p.id+"").contains(key) || p.username.contains(key)))
                 .collect(Collectors.toList());
@@ -185,8 +202,8 @@ public class MainActivity extends AppCompatActivity {
 
                 GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
 
-                adapter.getData().addAll(r);
-                users = adapter.getData();
+                users.addAll(r);
+                adapter.setData(users);
 
 
                 Log.e("New Users", "Added new users "+r.size()+ " First: "+r.get(0).username + " Last: "+ r.get(r.size()-1).username);

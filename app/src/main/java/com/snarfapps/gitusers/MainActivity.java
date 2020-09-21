@@ -146,6 +146,11 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        adapter.setOnItemClickListener((user, position) -> {
+            Log.e("adada","Click listener: "+ user.username);
+
+        });
     }
     private boolean isLoading = false;
     private boolean isSearching = false;

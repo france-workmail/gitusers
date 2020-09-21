@@ -32,8 +32,13 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
 
     private List<User> data;
 
+    private OnItemClickListener itemClickListener;
     public GitUsersAdapter(List<User> data) {
         this.data = data;
+    }
+    public GitUsersAdapter setOnItemClickListener(OnItemClickListener itemClickListener){
+        this.itemClickListener = itemClickListener;
+        return this;
     }
 
     public List<User> getData(){
@@ -48,7 +53,7 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
     public GitUserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_user,parent,false);
 
-        return new GitUserViewHolder(v, parent.getContext());
+        return new GitUserViewHolder(v);
     }
 
     @Override
@@ -69,9 +74,7 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
         ShimmerFrameLayout shimmerFrameLayout;
 
 
-
-
-        public GitUserViewHolder(@NonNull View itemView, Context ctx) {
+        public GitUserViewHolder(@NonNull View itemView) {
             super(itemView);
 
             tvUsername = itemView.findViewById(R.id.tvUsername);
@@ -82,7 +85,7 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
         public void bind(User u, int pos){
 
             //Check if the currently displyed user is a dummy user
-            if(u.id>=0) {
+            if(u.id >= 0) {
                 //if not then stop the shimmer effect and
                 //remove the skeleton colors
                 shimmerFrameLayout.hideShimmer();
@@ -125,6 +128,17 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
                         }
                     })
                     .into(ivAvatar);
+
+
+            /**
+             *
+             * Set View listeners
+             */
+
+            itemView.setOnClickListener(view -> {
+                if(itemClickListener!=null)
+                itemClickListener.onItemClick(u,pos);
+            });
         }
 
         private boolean shouldInvertPos(int pos){

@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
 
 
 public class MainActivity extends AppCompatActivity {
-    RequestQueue queue;
+    NetworkQueue queue;
     int nextPageIndex = 0;
 
     List<User> users;
@@ -57,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
          db = Room.databaseBuilder(getApplicationContext(),
                 AppDatabase.class, "git-users-db").build();
-         queue = Volley.newRequestQueue(this);
+         queue =  NetworkQueue.getInstance().setContext(getApplicationContext());
 
 
         /**
@@ -148,7 +149,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         adapter.setOnItemClickListener((user, position) -> {
-            Log.e("adada","Click listener: "+ user.username);
+            startActivity(new Intent(MainActivity.this, ProfileActivity.class)
+                    .putExtra(ProfileActivity.USERNAME_EXTRA_PARAMS,user.username));
 
         });
     }
@@ -225,7 +227,8 @@ public class MainActivity extends AppCompatActivity {
             pbLoading.setVisibility(View.GONE);
 
         });
-        queue.add(request);
+
+        queue.addQueue(request);
     }
 
 }

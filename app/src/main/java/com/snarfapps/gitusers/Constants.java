@@ -13,4 +13,5 @@ public class Constants {
     };
 
     public static final String GET_USERS_URL = "https://api.github.com/users?since=";
+    public static final String GET_USER_PROFILE_URL = "https://api.github.com/users/";
 }

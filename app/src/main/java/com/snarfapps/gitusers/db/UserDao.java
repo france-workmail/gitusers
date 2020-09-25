@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
 import com.snarfapps.gitusers.models.User;
+import com.snarfapps.gitusers.models.UserDetail;
 
 import org.json.JSONArray;
 
@@ -26,5 +27,11 @@ public interface UserDao {
 
     @Insert
     void addUser(User user);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void addUserDetail(UserDetail userDetail);
+
+    @Query("Select * from userDetail WHERE id LIKE:userId")
+    UserDetail getUserDetail(String userId);
 
 }

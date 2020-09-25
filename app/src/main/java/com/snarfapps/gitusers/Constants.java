@@ -1,5 +1,7 @@
 package com.snarfapps.gitusers;
 
+import com.snarfapps.gitusers.db.AppDatabase;
+
 public class Constants {
     /**
      * Color matrix that flips the components (<code>-1.0f * c + 255 = 255 - c</code>)
@@ -14,4 +16,7 @@ public class Constants {
 
     public static final String GET_USERS_URL = "https://api.github.com/users?since=";
     public static final String GET_USER_PROFILE_URL = "https://api.github.com/users/";
+
+
+    public static AppDatabase db;
 }

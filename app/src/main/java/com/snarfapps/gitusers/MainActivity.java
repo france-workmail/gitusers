@@ -1,11 +1,5 @@
 package com.snarfapps.gitusers;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
-
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,25 +7,21 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
+
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.snarfapps.gitusers.db.AppDatabase;
 import com.snarfapps.gitusers.models.User;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -44,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
     int nextPageIndex = 0;
 
     List<User> users;
-    AppDatabase db;
 
     RecyclerView rvUsers;
     ProgressBar pbLoading;
@@ -56,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-         db = Room.databaseBuilder(getApplicationContext(),
+         Constants.db = Room.databaseBuilder(getApplicationContext(),
                 AppDatabase.class, "git-users-db").build();
          queue =  NetworkQueue.getInstance().setContext(getApplicationContext());
 
@@ -159,18 +148,36 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
     class InitiateDbTask extends AsyncTask<Void,Void, Void>{
         @Override
+        protected void onPreExecute() {
+
+            pbLoading.setVisibility(View.VISIBLE);
+            isLoading = true;
+        }
+
+        @Override
         protected Void doInBackground(Void... voids) {
-            users = db.userDao().getAllUsers();
+            users = Constants.db.userDao().getAllUsers();
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            loadMoreUsers();
+            isLoading = false;
+            pbLoading.setVisibility(View.GONE);
+
+            if(users.size() == 0){
+                loadMoreUsers();
+            }
+            else{
+                /**
+                 * Data is loaded from db
+                 */
+                GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
+                adapter.setData(users);
+                adapter.notifyDataSetChanged();
+            }
         }
     }
 
@@ -216,9 +223,18 @@ public class MainActivity extends AppCompatActivity {
             Log.e("New Users", "Added new users "+r.size()+ " First: "+r.get(0).username + " Last: "+ r.get(r.size()-1).username);
 
             //set since paramater for next batch of users from the last user id
-            nextPageIndex = r.get(r.size()-1).id;
+            nextPageIndex = users.get(r.size()-1).id;
             adapter.notifyDataSetChanged();
 
+
+            new AsyncTask<Void,Void,Void>(){
+                @Override
+                protected Void doInBackground(Void... voids) {
+
+                    Constants.db.userDao().insertAllUsers(users);
+                    return null;
+                }
+            }.execute();
 
 
         }, error -> {

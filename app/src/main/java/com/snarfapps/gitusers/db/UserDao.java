@@ -8,9 +8,6 @@ import androidx.room.Query;
 import com.snarfapps.gitusers.models.User;
 import com.snarfapps.gitusers.models.UserDetail;
 
-import org.json.JSONArray;
-
-import java.util.ArrayList;
 import java.util.List;
 
 @Dao
@@ -23,7 +20,7 @@ public interface UserDao {
     List<User> searchUserByName(String searchKey);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertAllUsers(User...users);
+    void insertAllUsers(List<User> users);
 
     @Insert
     void addUser(User user);

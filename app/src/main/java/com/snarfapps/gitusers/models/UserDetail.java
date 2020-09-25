@@ -14,6 +14,9 @@ public class UserDetail {
     @SerializedName("id")
     public int id;
 
+    @ColumnInfo(name = "avatar_url")
+    @SerializedName("avatar_url")
+    public String avatarUrl;
     /**
      * User details
      */

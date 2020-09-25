@@ -1,5 +1,6 @@
 package com.snarfapps.gitusers;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -16,14 +17,23 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkError;
+import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
+import com.android.volley.RetryPolicy;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.snarfapps.gitusers.db.AppDatabase;
 import com.snarfapps.gitusers.models.User;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -177,6 +187,8 @@ public class MainActivity extends AppCompatActivity {
                 GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
                 adapter.setData(users);
                 adapter.notifyDataSetChanged();
+
+                nextPageIndex = users.get(users.size() -1).id;
             }
         }
     }
@@ -204,47 +216,103 @@ public class MainActivity extends AppCompatActivity {
         isLoading = true;
         Log.e("Loading", "Loading from: "+nextPageIndex);
 
-        StringRequest request = new StringRequest(Request.Method.GET, url, response -> {
+        StringRequest request = new StringRequest(Request.Method.GET, url,
+                response -> {
             isLoading = false;
             pbLoading.setVisibility(View.GONE);
 
             Type typeToken = new TypeToken<ArrayList<User>>(){}.getType();
             ArrayList<User> r = new Gson().fromJson(response,typeToken);
 
+            //Check if user already exists in the list
+            // just to make sure we only have unique items
+            //then add it so that we get an updated version of the
+            //user data
+
+            for(User u: r){
+               List<User> existingUser =   users.stream().filter(i -> (
+                       new String(""+i.id).equalsIgnoreCase(""+u.id)))
+                       .collect(Collectors.toList());
+               if(existingUser.size()>0){
+                   Log.e("Exists", "User already exists: "+ existingUser.get(0).username);
+                   //user already exists on list and db,
+                   //remove it so that we'll get the most updated copy
+                   //of the data
+                   users.remove(existingUser.get(0));
+               }
+            }
+
+            users.addAll(r);
 
             GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
 
-            users.addAll(r);
             //Set users as data source, in case the previous data
             //is the dummy users.
             adapter.setData(users);
 
 
-            Log.e("New Users", "Added new users "+r.size()+ " First: "+r.get(0).username + " Last: "+ r.get(r.size()-1).username);
-
             //set since paramater for next batch of users from the last user id
             nextPageIndex = users.get(r.size()-1).id;
             adapter.notifyDataSetChanged();
 
-
-            new AsyncTask<Void,Void,Void>(){
-                @Override
-                protected Void doInBackground(Void... voids) {
-
-                    Constants.db.userDao().insertAllUsers(users);
-                    return null;
-                }
-            }.execute();
-
-
-        }, error -> {
-            Log.e("Volley err", error.getLocalizedMessage());
+            updateUsers();
+        },
+                error -> {
+            Log.e("Volley err", error!=null?error.getLocalizedMessage(): "Null error");
             isLoading = false;
             pbLoading.setVisibility(View.GONE);
+
+
+            if(
+                    error instanceof NetworkError ||
+                    error instanceof ServerError ||
+                    error instanceof AuthFailureError ||
+                    error instanceof TimeoutError
+                ){
+
+                //start retry network check
+                isNetworkLost();
+//                networkReachCheck();
+            }
 
         });
 
         queue.addQueue(request);
+    }
+    @SuppressLint("StaticFieldLeak")
+    void updateUsers(){
+        new AsyncTask<Void,Void,Void>(){
+            @Override
+            protected Void doInBackground(Void... voids) {
+
+                Constants.db.userDao().insertAllUsers(users);
+                return null;
+            }
+        }.execute();
+    }
+
+    public void isNetworkAvailable(){
+        Log.e("asda","Server back!");
+//        loadMoreUsers();
+    }
+    public void isNetworkLost(){
+        Log.e("asda","Server lost");
+    }
+
+
+    @SuppressLint("StaticFieldLeak")
+    void networkReachCheck(){
+        try {
+            if(InetAddress.getByName(Constants.REACHABILITY_SERVER).isReachable(10000)){
+                isNetworkAvailable();
+            }
+            else{
+                networkReachCheck();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 }

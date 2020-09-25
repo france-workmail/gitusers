@@ -6,11 +6,10 @@ import androidx.room.PrimaryKey;
 
 import com.google.gson.annotations.SerializedName;
 
-@Entity
+@Entity()
 public class User {
     @PrimaryKey
     @ColumnInfo(name = "id")
-
     @SerializedName("id")
     public int id;
 

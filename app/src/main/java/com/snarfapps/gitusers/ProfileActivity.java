@@ -1,8 +1,21 @@
 package com.snarfapps.gitusers;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.palette.graphics.Palette;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.PaintDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.TransitionDrawable;
+import android.graphics.drawable.shapes.RectShape;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,12 +25,17 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.snarfapps.gitusers.models.User;
@@ -46,6 +64,8 @@ public class ProfileActivity extends AppCompatActivity {
     int userId;
     UserDetail userDetail;
 
+    ConstraintLayout clRoot;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +84,8 @@ public class ProfileActivity extends AppCompatActivity {
         btnSave = findViewById(R.id.btnSave);
         ibBack = findViewById(R.id.ibBack);
 
+        clRoot = findViewById(R.id.clRoot);
+
 
         userName = getIntent().getStringExtra(USERNAME_EXTRA_PARAMS);
         userId  = getIntent().getIntExtra(USERID_EXTRA_PARAMS, -1);
@@ -73,12 +95,15 @@ public class ProfileActivity extends AppCompatActivity {
 
         btnSave.setOnClickListener(v -> {
 
+            etNotes.clearFocus();
             // Add the notes to user info.
             // then save the changes to db
             String notes = etNotes.getText().toString();
-            if(!notes.isEmpty())
+            if(!notes.isEmpty() && userDetail.notes != null)
                 userDetail.notes = notes;
             saveUserDetail();
+
+            Toast.makeText(ProfileActivity.this,"Note saved!", Toast.LENGTH_SHORT).show();
         });
         ibBack.setOnClickListener(v -> finish());
     }
@@ -122,14 +147,51 @@ public class ProfileActivity extends AppCompatActivity {
 
     void bindUserDetail(UserDetail user){
         tvUsername.setText(getIntent().getStringExtra(USERNAME_EXTRA_PARAMS));
-        tvFollowers.setText("Followers: " + user.followers);
-        tvFollowing.setText("Following: "+ user.following);
+        tvFollowers.setText("" + user.followers);
+        tvFollowing.setText(""+user.following);
         tvName.setText("Name: " + user.name);
         tvCompany.setText("Company: "+ (user.company==null?"":user.company));
         tvBlog.setText("Blog: "+ (user.blog == null? "":user.blog));
         etNotes.setText(user.notes);
 
-        Glide.with(this).load(user.avatarUrl).into(ivAvatar);
+        Glide.with(this).load(user.avatarUrl)
+                .listener(new RequestListener<Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+
+                        Palette p = Palette.from(( (BitmapDrawable)resource ).getBitmap()).generate();
+
+                        int vibrantColor = p.getVibrantColor(Color.rgb(255,255,255));
+
+                        ShapeDrawable.ShaderFactory shaderFactory = new ShapeDrawable.ShaderFactory(){
+                            @Override
+                            public Shader resize(int width, int height) {
+                                int[] colors = {vibrantColor, Color.BLACK};
+                                float[] positions = {0.0f, 0.95f};
+                                return new LinearGradient(0.0f,0.0f,0.0f,(float)clRoot.getHeight(),colors,positions,Shader.TileMode.REPEAT);
+                            }
+                        };
+
+
+                        PaintDrawable paintDrawable = new PaintDrawable();
+                        paintDrawable.setShape(new RectShape());
+                        paintDrawable.setShaderFactory(shaderFactory);
+//
+                        clRoot.setBackground(paintDrawable);
+//                        TransitionDrawable transitionDrawable = new TransitionDrawable( new Drawable[]{ new ColorDrawable(Color.WHITE),paintDrawable});
+//                        clRoot.setBackground(transitionDrawable);
+//                        transitionDrawable.startTransition(100);
+
+                        return false;
+                    }
+                })
+
+                .into(ivAvatar);
     }
 
     /**

@@ -2,6 +2,8 @@ package com.snarfapps.gitusers;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
@@ -9,6 +11,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
@@ -44,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
 
     RecyclerView rvUsers;
     ProgressBar pbLoading;
+    LinearLayout llLoadFailed;
+    NetworkStateReceiver networkStateReceiver;
 
     public static GitUsersAdapter usersAdapter;
 
@@ -86,6 +91,14 @@ public class MainActivity extends AppCompatActivity {
         rvUsers.setAdapter(usersAdapter);
 
         pbLoading = findViewById(R.id.pbLoading);
+
+        llLoadFailed = findViewById(R.id.llLoadFailed);
+        llLoadFailed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loadMoreUsers();
+            }
+        });
 
         if(users.size() == 0)
             new InitiateDbTask().execute();
@@ -152,7 +165,38 @@ public class MainActivity extends AppCompatActivity {
                     .putExtra(ProfileActivity.USERID_EXTRA_PARAMS, user.id) , 1);
 
         });
+
+
+        /**
+         *
+         * Network state monitor
+         *
+         */
+
+        networkStateReceiver = new NetworkStateReceiver(this);
+        networkStateReceiver.addListener(new NetworkStateReceiver.NetworkStateReceiverListener() {
+            @Override
+            public void onNetworkAvailable() {
+                Log.e("Sdada", "Network is available");
+            }
+
+            @Override
+            public void onNetworkUnavailable() {
+
+                Log.e("Sdada", "Network NOT available");
+            }
+        });
+
+        registerReceiver(networkStateReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(networkStateReceiver);
+    }
+
     private boolean isLoading = false;
     private boolean isSearching = false;
 
@@ -215,6 +259,8 @@ public class MainActivity extends AppCompatActivity {
         String url =  Constants.GET_USERS_URL +nextPageIndex;
         pbLoading.setVisibility(View.VISIBLE);
         isLoading = true;
+        llLoadFailed.setVisibility(View.GONE);
+
         Log.e("Loading", "Loading from: "+nextPageIndex);
 
         StringRequest request = new StringRequest(Request.Method.GET, url,
@@ -272,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
                 ){
 
                 //start retry network check
-                isNetworkLost();
+//                isNetworkLost();
 //                networkReachCheck();
             }
 
@@ -291,29 +337,4 @@ public class MainActivity extends AppCompatActivity {
             }
         }.execute();
     }
-
-    public void isNetworkAvailable(){
-        Log.e("asda","Server back!");
-//        loadMoreUsers();
-    }
-    public void isNetworkLost(){
-        Log.e("asda","Server lost");
-    }
-
-
-    @SuppressLint("StaticFieldLeak")
-    void networkReachCheck(){
-        try {
-            if(InetAddress.getByName(Constants.REACHABILITY_SERVER).isReachable(10000)){
-                isNetworkAvailable();
-            }
-            else{
-                networkReachCheck();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
 }

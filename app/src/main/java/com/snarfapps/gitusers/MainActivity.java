@@ -19,12 +19,9 @@ import androidx.room.Room;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkError;
-import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
-import com.android.volley.RetryPolicy;
 import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -210,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void loadMoreUsers(){
+        if(isLoading)return;
 
         String url =  Constants.GET_USERS_URL +nextPageIndex;
         pbLoading.setVisibility(View.VISIBLE);
@@ -252,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
 
 
             //set since paramater for next batch of users from the last user id
-            nextPageIndex = users.get(r.size()-1).id;
+            nextPageIndex = r.get(r.size()-1).id;
             adapter.notifyDataSetChanged();
 
             updateUsers();

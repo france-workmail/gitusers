@@ -31,4 +31,8 @@ public interface UserDao {
     @Query("Select * from userDetail WHERE id LIKE:userId")
     UserDetail getUserDetail(String userId);
 
+
+    @Query("Select * from userdetail where id LIKE:userId AND notes NOT NULL")
+    boolean userHasNotes(String userId);
+
 }

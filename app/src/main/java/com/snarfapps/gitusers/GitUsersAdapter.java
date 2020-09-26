@@ -5,10 +5,12 @@ import android.graphics.Color;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -72,6 +74,7 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
         TextView tvUsername,tvUserID;
         ImageView ivAvatar;
         ShimmerFrameLayout shimmerFrameLayout;
+        ImageButton ibNotes;
 
 
         public GitUserViewHolder(@NonNull View itemView) {
@@ -81,6 +84,8 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
             ivAvatar = itemView.findViewById(R.id.ivAvatar);
             tvUserID = itemView.findViewById(R.id.tvUserId);
             shimmerFrameLayout = itemView.findViewById(R.id.shimmer);
+            ibNotes = itemView.findViewById(R.id.ibNotes);
+            ibNotes.setVisibility(View.GONE);
         }
         public void bind(User u, int pos){
 
@@ -103,6 +108,7 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
 
             tvUsername.setText(u.username );
             tvUserID.setText("ID: "+u.id +" "+ (shouldInvertPos(pos)?"(Inverted)":""));
+
             Glide.with(itemView.getContext()).load(u.avatarUrl)
                     /**
                      * Set image inversion every 4th person
@@ -130,6 +136,7 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
                     .into(ivAvatar);
 
 
+
             /**
              *
              * Set View listeners
@@ -139,6 +146,17 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
                 if(itemClickListener!=null)
                 itemClickListener.onItemClick(u,pos);
             });
+        }
+
+        void showNotes(String){
+            new AsyncTask<Void,Void,Void>(){
+                @Override
+                protected Void doInBackground(Void... voids) {
+
+                    return null;
+                }
+            }.execute();
+
         }
 
         private boolean shouldInvertPos(int pos){

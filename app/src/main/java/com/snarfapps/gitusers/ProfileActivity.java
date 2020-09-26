@@ -106,7 +106,7 @@ public class ProfileActivity extends AppCompatActivity {
             // Add the notes to user info.
             // then save the changes to db
             String notes = etNotes.getText().toString();
-            if(!notes.isEmpty() && userDetail.notes != null)
+            if(!notes.isEmpty())
                 userDetail.notes = notes;
             saveUserDetail();
 

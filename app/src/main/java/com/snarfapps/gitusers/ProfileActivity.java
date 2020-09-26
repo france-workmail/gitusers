@@ -2,9 +2,13 @@ package com.snarfapps.gitusers;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,20 +25,26 @@ import com.snarfapps.gitusers.models.UserDetail;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
 
     public static String USERNAME_EXTRA_PARAMS = "username";
+    public static String USERID_EXTRA_PARAMS = "userid";
 
 
     /**
      * Layouts
      */
-    TextView tvUsername, tvFollowers,tvFollowing, tvName, tvCompany, tvBlog, tvNotes;
+    EditText etNotes;
+    TextView tvUsername, tvFollowers,tvFollowing, tvName, tvCompany, tvBlog;
     ImageView ivAvatar;
     Button btnSave;
     ImageButton ibBack;
 
+    String userName;
+    int userId;
+    UserDetail userDetail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,15 +57,29 @@ public class ProfileActivity extends AppCompatActivity {
         tvName = findViewById(R.id.tvName);
         tvCompany = findViewById(R.id.tvCompany);
         tvBlog = findViewById(R.id.tvBlog);
-        tvNotes = findViewById(R.id.tvNotes);
+        etNotes = findViewById(R.id.etNotes);
 
 
         ivAvatar = findViewById(R.id.ivAvatar);
         btnSave = findViewById(R.id.btnSave);
         ibBack = findViewById(R.id.ibBack);
 
-        loadUserProfile(getIntent().getStringExtra(USERNAME_EXTRA_PARAMS));
+
+        userName = getIntent().getStringExtra(USERNAME_EXTRA_PARAMS);
+        userId  = getIntent().getIntExtra(USERID_EXTRA_PARAMS, -1);
+
+        // Initially load the data from db
+        loadFromDb();
+
+        btnSave.setOnClickListener(v -> {
+
+            // Add the notes to user info.
+            // then save the changes to db
+            userDetail.notes =etNotes.getText().toString();
+            saveUserDetail();
+        });
     }
+
 
 
     void loadUserProfile(String username){
@@ -63,15 +87,28 @@ public class ProfileActivity extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        Log.e("LOaded user info", response);
 
+                        Log.e("Fetch", "User detail fetched from server");
 
                         Type typeToken = new TypeToken<UserDetail>(){}.getType();
-                        UserDetail r = new Gson().fromJson(response,typeToken);
 
 
+                        String notesHolder = "";
+                        //get the notes first so it wont be overridden by new data
+                        if(userDetail!=null && userDetail.notes!=null)
+                            notesHolder = userDetail.notes;
 
-                        bindUserDetail(r);
+                        // set the updated user detail data
+                        userDetail = new Gson().fromJson(response,typeToken);
+
+                        //return the notes to overridden user data
+                        userDetail.notes = notesHolder;
+
+                        //update the user detail
+                        saveUserDetail();
+
+
+                        bindUserDetail(userDetail);
 
                     }
                 },
@@ -85,6 +122,7 @@ public class ProfileActivity extends AppCompatActivity {
         NetworkQueue.getInstance().addQueue(request);
     }
 
+
     void bindUserDetail(UserDetail user){
         tvUsername.setText(getIntent().getStringExtra(USERNAME_EXTRA_PARAMS));
         tvFollowers.setText("Followers: " + user.followers);
@@ -92,8 +130,62 @@ public class ProfileActivity extends AppCompatActivity {
         tvName.setText("Name: " + user.name);
         tvCompany.setText("Company: "+ (user.company==null?"":user.company));
         tvBlog.setText("Blog: "+ (user.blog == null? "":user.blog));
-        tvNotes.setText(user.notes);
+        etNotes.setText(user.notes);
 
         Glide.with(this).load(user.avatarUrl).into(ivAvatar);
+    }
+
+    /**
+     * Database operations
+     */
+
+
+    /**
+     * Checks if the currently selected user has a
+     * db version of its data.
+     */
+    @SuppressLint("StaticFieldLeak")
+    void loadFromDb(){
+
+        new AsyncTask<Void,Void,Void>(){
+            @Override
+            protected Void doInBackground(Void... voids) {
+                userDetail = Constants.db.userDao().getUserDetail(userId);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                //if no user is in db, load data from server
+
+                if(userDetail != null) {
+                    //user has data in db so directly bind it
+                    bindUserDetail(userDetail);
+                }
+
+                //regardless if local data is present or not
+                // we need to fetch from server to get an updated
+                // copy of user data
+                loadUserProfile(userName);
+
+            }
+        }.execute();
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    void saveUserDetail(){
+        new AsyncTask<Void,Void,Void>(){
+            @Override
+            protected Void doInBackground(Void... voids) {
+
+
+                Constants.db.userDao().insertUserDetail(userDetail);
+
+
+                List<UserDetail> details=  Constants.db.userDao().getAllUserDetails();
+                Log.e("DB Operation", "Inserted/Added new user. Current user details size: "+ details.size());
+                return null;
+            }
+        }.execute();
     }
 }

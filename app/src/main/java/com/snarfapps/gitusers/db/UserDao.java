@@ -4,6 +4,7 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import com.snarfapps.gitusers.models.User;
 import com.snarfapps.gitusers.models.UserDetail;
@@ -25,14 +26,22 @@ public interface UserDao {
     @Insert
     void addUser(User user);
 
+
+
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void addUserDetail(UserDetail userDetail);
+    void insertUserDetail(UserDetail userDetail);
 
     @Query("Select * from userDetail WHERE id LIKE:userId")
-    UserDetail getUserDetail(String userId);
+    UserDetail getUserDetail(int userId);
 
 
     @Query("Select * from userdetail where id LIKE:userId AND notes NOT NULL")
     boolean userHasNotes(String userId);
+
+//    @Update(entity = UserDetail.class)
+//    void addNote(UserDetail detail);
+    @Query("Select * from userdetail")
+    List<UserDetail> getAllUserDetails();
 
 }

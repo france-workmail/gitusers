@@ -134,7 +134,7 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
                         }
                     })
                     .into(ivAvatar);
-
+                    showNotesImage(u.id+"");
 
 
             /**
@@ -144,16 +144,20 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
 
             itemView.setOnClickListener(view -> {
                 if(itemClickListener!=null)
-                itemClickListener.onItemClick(u,pos);
+                 itemClickListener.onItemClick(u,pos);
             });
         }
 
-        void showNotes(String){
-            new AsyncTask<Void,Void,Void>(){
+        void showNotesImage(String id){
+            new AsyncTask<Void,Void,Boolean>(){
                 @Override
-                protected Void doInBackground(Void... voids) {
+                protected Boolean doInBackground(Void... voids) {
+                   return Constants.db.userDao().userHasNotes(id);
+                }
 
-                    return null;
+                @Override
+                protected void onPostExecute(Boolean b) {
+                    ibNotes.setVisibility(b?View.VISIBLE:View.GONE);
                 }
             }.execute();
 

@@ -141,10 +141,13 @@
             android:text="Notes" />
 
 
-        <TextView
-            android:id="@+id/tvNotes"
+        <EditText
+            android:id="@+id/etNotes"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:lines="20"
+            android:padding="8dp"
+            android:background="@drawable/bg_edittext_rounded"/>
 
     </LinearLayout>
 

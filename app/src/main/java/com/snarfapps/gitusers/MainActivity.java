@@ -145,8 +145,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         adapter.setOnItemClickListener((user, position) -> {
-            startActivity(new Intent(MainActivity.this, ProfileActivity.class)
-                    .putExtra(ProfileActivity.USERNAME_EXTRA_PARAMS,user.username));
+            startActivityForResult(new Intent(MainActivity.this, ProfileActivity.class)
+                    .putExtra(ProfileActivity.USERNAME_EXTRA_PARAMS,user.username)
+                    .putExtra(ProfileActivity.USERID_EXTRA_PARAMS, user.id) , 1);
 
         });
     }

@@ -37,4 +37,13 @@ public interface UserDao {
     @Query("Select * from userdetail")
     List<UserDetail> getAllUserDetails();
 
+    /**
+     * Search using user and userdetail ententy
+     */
+
+//    @Query("Select * from user INNER JOIN userDetail ON notes LIKE:searchKey WHERE login LIKE:searchKey")
+    //TODO set foreign keys for userdetail from user
+    @Query("Select * from user INNER JOIN userDetail on user.id = userDetail.id WHERE user.login LIKE:searchKey OR userDetail.notes LIKE:searchKey")
+    List<User> searchUserByNameOrNote(String searchKey);
+
 }

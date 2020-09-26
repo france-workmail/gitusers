@@ -30,7 +30,7 @@
                 android:id="@+id/etSearch"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:hint="Search username or id"
+                android:hint="Search username or in notes"
                 android:inputType="textPersonName"
                 android:singleLine="false"
                 android:paddingStart="8dp"

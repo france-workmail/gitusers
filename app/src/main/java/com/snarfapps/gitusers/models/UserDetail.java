@@ -2,17 +2,19 @@ package com.snarfapps.gitusers.models;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
 
 import com.google.gson.annotations.SerializedName;
 
-@Entity
+@Entity ()
 public class UserDetail {
 
     @PrimaryKey
     @ColumnInfo(name = "id")
     @SerializedName("id")
     public int id;
+
 
     @ColumnInfo(name = "avatar_url")
     @SerializedName("avatar_url")

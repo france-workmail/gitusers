@@ -97,6 +97,8 @@ public class ProfileActivity extends AppCompatActivity {
         userName = getIntent().getStringExtra(USERNAME_EXTRA_PARAMS);
         userId  = getIntent().getIntExtra(USERID_EXTRA_PARAMS, -1);
 
+        tvUsername.setText(userName);
+
         // Initially load the data from db
         loadFromDb();
 
@@ -182,6 +184,7 @@ public class ProfileActivity extends AppCompatActivity {
 
                     if(!loadedFromDB) {
                         //dont show error if we have a local data available displayed
+                        if(error.networkResponse!=null)
                         ((TextView) findViewById(R.id.tvErrorCode)).setText("" + error.networkResponse.statusCode);
                         connectionLost();
                     }
@@ -195,7 +198,6 @@ public class ProfileActivity extends AppCompatActivity {
         llLoadFailed.setVisibility(View.VISIBLE);
     }
     void bindUserDetail(UserDetail user){
-        tvUsername.setText(getIntent().getStringExtra(USERNAME_EXTRA_PARAMS));
         tvFollowers.setText("" + user.followers);
         tvFollowing.setText(""+user.following);
         tvName.setText("Name: " + user.name);

@@ -252,19 +252,37 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     void searchUsers(final String key){
         if(isLoading) return; //disable search when the list is loading
 
-        //Enable searching for both user id and username
-        ArrayList<User> searchedUsers = (ArrayList<User>) users.stream().filter(
-                p -> (new String(p.id+"").contains(key) || p.username.contains(key)))
-                .collect(Collectors.toList());
+//        //Enable searching for both user id and username
+//        ArrayList<User> searchedUsers = (ArrayList<User>) users.stream().filter(
+//                p -> (new String(p.id+"").contains(key) || p.username.contains(key)))
+//                .collect(Collectors.toList());
 
-        Log.e("Searched users", "Count: "+searchedUsers.size());
+        /**
+         * Implement search using the local db
+         */
 
         isSearching = true;
-        usersAdapter.setData(searchedUsers);
-        usersAdapter.notifyDataSetChanged();
+        new AsyncTask<Void,Void,List<User>>(){
+            @Override
+            protected List<User> doInBackground(Void... voids) {
+                 return Constants.db.userDao().searchUserByNameOrNote("%"+key+"%");
+            }
+
+            @Override
+            protected void onPostExecute(List<User> users) {
+                super.onPostExecute(users);
+                Log.e("Searched users", "Count: "+users.size());
+
+                usersAdapter.setData(users);
+                usersAdapter.notifyDataSetChanged();
+            }
+        }.execute();
+
+
     }
 
 

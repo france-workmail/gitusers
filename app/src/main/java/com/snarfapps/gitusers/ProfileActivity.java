@@ -75,49 +75,44 @@ public class ProfileActivity extends AppCompatActivity {
 
             // Add the notes to user info.
             // then save the changes to db
-            userDetail.notes =etNotes.getText().toString();
+            userDetail.notes = etNotes.getText().toString();
             saveUserDetail();
         });
+        ibBack.setOnClickListener(v -> finish());
     }
 
 
 
     void loadUserProfile(String username){
         StringRequest request = new StringRequest(Request.Method.GET, Constants.GET_USER_PROFILE_URL + username,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
+                response -> {
 
-                        Log.e("Fetch", "User detail fetched from server");
+                    Log.e("Fetch", "User detail fetched from server");
 
-                        Type typeToken = new TypeToken<UserDetail>(){}.getType();
+                    Type typeToken = new TypeToken<UserDetail>(){}.getType();
 
 
-                        String notesHolder = "";
-                        //get the notes first so it wont be overridden by new data
-                        if(userDetail!=null && userDetail.notes!=null)
-                            notesHolder = userDetail.notes;
+                    String notesHolder = "";
+                    //get the notes first so it wont be overridden by new data
+                    if(userDetail!=null && userDetail.notes!=null)
+                        notesHolder = userDetail.notes;
 
-                        // set the updated user detail data
-                        userDetail = new Gson().fromJson(response,typeToken);
+                    // set the updated user detail data
+                    userDetail = new Gson().fromJson(response,typeToken);
 
-                        //return the notes to overridden user data
-                        userDetail.notes = notesHolder;
+                    //return the notes to overridden user data
+                    userDetail.notes = notesHolder;
 
-                        //update the user detail
-                        saveUserDetail();
+                    //update the user detail
+                    saveUserDetail();
 
 
-                        bindUserDetail(userDetail);
+                    bindUserDetail(userDetail);
 
-                    }
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
+                error -> {
 
-                    }
-            });
+                });
 
         NetworkQueue.getInstance().addQueue(request);
     }

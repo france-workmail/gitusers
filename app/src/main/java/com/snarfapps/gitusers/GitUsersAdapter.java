@@ -1,5 +1,6 @@
 package com.snarfapps.gitusers;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.ColorMatrixColorFilter;
@@ -148,6 +149,7 @@ public class GitUsersAdapter extends RecyclerView.Adapter<GitUsersAdapter.GitUse
             });
         }
 
+        @SuppressLint("StaticFieldLeak")
         void showNotesImage(String id){
             new AsyncTask<Void,Void,Boolean>(){
                 @Override

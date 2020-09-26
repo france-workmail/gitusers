@@ -23,11 +23,6 @@ public interface UserDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAllUsers(List<User> users);
 
-    @Insert
-    void addUser(User user);
-
-
-
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertUserDetail(UserDetail userDetail);
@@ -39,8 +34,6 @@ public interface UserDao {
     @Query("Select * from userdetail where id LIKE:userId AND notes NOT NULL")
     boolean userHasNotes(String userId);
 
-//    @Update(entity = UserDetail.class)
-//    void addNote(UserDetail detail);
     @Query("Select * from userdetail")
     List<UserDetail> getAllUserDetails();
 

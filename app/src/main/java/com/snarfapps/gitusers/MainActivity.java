@@ -31,11 +31,10 @@ import com.google.gson.reflect.TypeToken;
 import com.snarfapps.gitusers.db.AppDatabase;
 import com.snarfapps.gitusers.models.User;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -52,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
 
     public static GitUsersAdapter usersAdapter;
 
-    private ArrayList<User> shimmerUsers;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
          * The following sets the shimmer skeleton of
          * the recyclerview
          */
-        shimmerUsers = new ArrayList<>();
+        ArrayList<User> shimmerUsers = new ArrayList<>();
         for (int dummyCount =0 ; dummyCount < 15 ; dummyCount++){
             User u = new User();
             u.id = -1; // unique id to identify that the currently presented
@@ -93,12 +91,7 @@ public class MainActivity extends AppCompatActivity {
         pbLoading = findViewById(R.id.pbLoading);
 
         llLoadFailed = findViewById(R.id.llLoadFailed);
-        llLoadFailed.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadMoreUsers();
-            }
-        });
+        llLoadFailed.setOnClickListener(v -> loadMoreUsers());
 
         if(users.size() == 0)
             new InitiateDbTask().execute();
@@ -151,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
                 if(s.length() == 0) {
                     isSearching = false;
                     //return the data set
-//                    GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
                     usersAdapter.setData(users);
                     usersAdapter.notifyDataSetChanged();
                 }
@@ -202,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    @SuppressLint("StaticFieldLeak")
     class InitiateDbTask extends AsyncTask<Void,Void, Void>{
         @Override
         protected void onPreExecute() {
@@ -228,9 +221,8 @@ public class MainActivity extends AppCompatActivity {
                 /**
                  * Data is loaded from db
                  */
-                GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
-                adapter.setData(users);
-                adapter.notifyDataSetChanged();
+                usersAdapter.setData(users);
+                usersAdapter.notifyDataSetChanged();
 
                 nextPageIndex = users.get(users.size() -1).id;
             }
@@ -248,7 +240,6 @@ public class MainActivity extends AppCompatActivity {
         Log.e("Searched users", "Count: "+searchedUsers.size());
 
         isSearching = true;
-//        GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
         usersAdapter.setData(searchedUsers);
         usersAdapter.notifyDataSetChanged();
     }
@@ -291,7 +282,6 @@ public class MainActivity extends AppCompatActivity {
 
             users.addAll(r);
 
-//            GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
 
             //Set users as data source, in case the previous data
             //is the dummy users.
@@ -305,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
             updateUsers();
         },
                 error -> {
-            Log.e("Volley err", error!=null?error.getLocalizedMessage(): "Null error");
+            Log.e("Volley err", error!=null? Objects.requireNonNull(error.getLocalizedMessage()) : "Null error");
             isLoading = false;
             pbLoading.setVisibility(View.GONE);
 
@@ -317,9 +307,8 @@ public class MainActivity extends AppCompatActivity {
                     error instanceof TimeoutError
                 ){
 
-                //start retry network check
-//                isNetworkLost();
-//                networkReachCheck();
+
+                //TODO Network is lost, do some checks
             }
 
         });

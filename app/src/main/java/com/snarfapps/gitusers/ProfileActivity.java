@@ -6,6 +6,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.palette.graphics.Palette;
 
 import android.annotation.SuppressLint;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
@@ -16,6 +17,7 @@ import android.graphics.drawable.PaintDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.graphics.drawable.shapes.RectShape;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,6 +26,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -66,6 +69,10 @@ public class ProfileActivity extends AppCompatActivity {
 
     ConstraintLayout clRoot;
 
+
+    NetworkStateReceiver networkStateReceiver;
+    LinearLayout llLoadFailed;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,11 +113,40 @@ public class ProfileActivity extends AppCompatActivity {
             Toast.makeText(ProfileActivity.this,"Note saved!", Toast.LENGTH_SHORT).show();
         });
         ibBack.setOnClickListener(v -> finish());
-    }
 
+        llLoadFailed = findViewById(R.id.llLoadFailed);
+        llLoadFailed.setOnClickListener(v -> loadUserProfile(userName));
+
+        networkStateReceiver = new NetworkStateReceiver(this);
+        networkStateReceiver.addListener(new NetworkStateReceiver.NetworkStateReceiverListener() {
+            @Override
+            public void onNetworkAvailable() {
+                if(shouldRetry) {
+                    Log.e("Connection", "Retrying...");
+                    loadUserProfile(userName);
+                }
+            }
+
+            @Override
+            public void onNetworkUnavailable() {
+            }
+        });
+
+        registerReceiver(networkStateReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(networkStateReceiver);
+    }
+    //this variable is a flag to check once the
+    //connection is regained.
+    private boolean shouldRetry = false;
 
 
     void loadUserProfile(String username){
+
+        shouldRetry = false;
         StringRequest request = new StringRequest(Request.Method.GET, Constants.GET_USER_PROFILE_URL + username,
                 response -> {
 
@@ -136,15 +172,23 @@ public class ProfileActivity extends AppCompatActivity {
 
                     bindUserDetail(userDetail);
 
+
+                    clRoot.setVisibility(View.VISIBLE);
+                    llLoadFailed.setVisibility(View.GONE);
+
                 },
                 error -> {
-
+                    shouldRetry = true;
+                    connectionLost();
                 });
 
         NetworkQueue.getInstance().addQueue(request);
     }
 
-
+    void connectionLost(){
+        clRoot.setVisibility(View.GONE);
+        llLoadFailed.setVisibility(View.VISIBLE);
+    }
     void bindUserDetail(UserDetail user){
         tvUsername.setText(getIntent().getStringExtra(USERNAME_EXTRA_PARAMS));
         tvFollowers.setText("" + user.followers);
@@ -183,6 +227,7 @@ public class ProfileActivity extends AppCompatActivity {
                         paintDrawable.setShaderFactory(shaderFactory);
 //
                         clRoot.setBackground(paintDrawable);
+
 //                        TransitionDrawable transitionDrawable = new TransitionDrawable( new Drawable[]{ new ColorDrawable(Color.WHITE),paintDrawable});
 //                        clRoot.setBackground(transitionDrawable);
 //                        transitionDrawable.startTransition(100);

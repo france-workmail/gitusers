@@ -179,7 +179,12 @@ public class ProfileActivity extends AppCompatActivity {
                 },
                 error -> {
                     shouldRetry = true;
-                    connectionLost();
+
+                    if(!loadedFromDB) {
+                        //dont show error if we have a local data available displayed
+                        ((TextView) findViewById(R.id.tvErrorCode)).setText("" + error.networkResponse.statusCode);
+                        connectionLost();
+                    }
                 });
 
         NetworkQueue.getInstance().addQueue(request);
@@ -208,8 +213,15 @@ public class ProfileActivity extends AppCompatActivity {
                     @Override
                     public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
 
-                        Palette p = Palette.from(( (BitmapDrawable)resource ).getBitmap()).generate();
+                        /**
+                         *
+                         * This section is to generate a dominant color of the user image
+                         * and set it as a gradient background of the layout
+                         *
+                         */
 
+
+                        Palette p = Palette.from(( (BitmapDrawable)resource ).getBitmap()).generate();
                         int vibrantColor = p.getVibrantColor(Color.rgb(255,255,255));
 
                         ShapeDrawable.ShaderFactory shaderFactory = new ShapeDrawable.ShaderFactory(){
@@ -225,7 +237,7 @@ public class ProfileActivity extends AppCompatActivity {
                         PaintDrawable paintDrawable = new PaintDrawable();
                         paintDrawable.setShape(new RectShape());
                         paintDrawable.setShaderFactory(shaderFactory);
-//
+
                         clRoot.setBackground(paintDrawable);
 
 //                        TransitionDrawable transitionDrawable = new TransitionDrawable( new Drawable[]{ new ColorDrawable(Color.WHITE),paintDrawable});
@@ -265,6 +277,7 @@ public class ProfileActivity extends AppCompatActivity {
                 if(userDetail != null) {
                     //user has data in db so directly bind it
                     bindUserDetail(userDetail);
+                    loadedFromDB = true;
                 }
 
                 //regardless if local data is present or not
@@ -275,6 +288,8 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }.execute();
     }
+
+    boolean loadedFromDB = false;
 
     @SuppressLint("StaticFieldLeak")
     void saveUserDetail(){

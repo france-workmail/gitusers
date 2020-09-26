@@ -45,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView rvUsers;
     ProgressBar pbLoading;
 
+    public static GitUsersAdapter usersAdapter;
+
     private ArrayList<User> shimmerUsers;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,9 +81,9 @@ public class MainActivity extends AppCompatActivity {
         rvUsers.setLayoutManager(new LinearLayoutManager(this));
 
         //use dummy users for shimmering effect
-        final GitUsersAdapter adapter = new GitUsersAdapter(shimmerUsers);
+        usersAdapter = new GitUsersAdapter(shimmerUsers);
 
-        rvUsers.setAdapter(adapter);
+        rvUsers.setAdapter(usersAdapter);
 
         pbLoading = findViewById(R.id.pbLoading);
 
@@ -136,15 +138,15 @@ public class MainActivity extends AppCompatActivity {
                 if(s.length() == 0) {
                     isSearching = false;
                     //return the data set
-                    GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
-                    adapter.setData(users);
-                    adapter.notifyDataSetChanged();
+//                    GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
+                    usersAdapter.setData(users);
+                    usersAdapter.notifyDataSetChanged();
                 }
 
             }
         });
 
-        adapter.setOnItemClickListener((user, position) -> {
+        usersAdapter.setOnItemClickListener((user, position) -> {
             startActivityForResult(new Intent(MainActivity.this, ProfileActivity.class)
                     .putExtra(ProfileActivity.USERNAME_EXTRA_PARAMS,user.username)
                     .putExtra(ProfileActivity.USERID_EXTRA_PARAMS, user.id) , 1);
@@ -202,9 +204,9 @@ public class MainActivity extends AppCompatActivity {
         Log.e("Searched users", "Count: "+searchedUsers.size());
 
         isSearching = true;
-        GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
-        adapter.setData(searchedUsers);
-        adapter.notifyDataSetChanged();
+//        GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
+        usersAdapter.setData(searchedUsers);
+        usersAdapter.notifyDataSetChanged();
     }
 
     void loadMoreUsers(){
@@ -243,16 +245,16 @@ public class MainActivity extends AppCompatActivity {
 
             users.addAll(r);
 
-            GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
+//            GitUsersAdapter adapter = (GitUsersAdapter)rvUsers.getAdapter();
 
             //Set users as data source, in case the previous data
             //is the dummy users.
-            adapter.setData(users);
+            usersAdapter.setData(users);
 
 
             //set since paramater for next batch of users from the last user id
             nextPageIndex = r.get(r.size()-1).id;
-            adapter.notifyDataSetChanged();
+            usersAdapter.notifyDataSetChanged();
 
             updateUsers();
         },

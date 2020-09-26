@@ -186,6 +186,13 @@ public class ProfileActivity extends AppCompatActivity {
                 Log.e("DB Operation", "Inserted/Added new user. Current user details size: "+ details.size());
                 return null;
             }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                //notify main activity list
+                MainActivity.usersAdapter.notifyDataSetChanged();
+
+            }
         }.execute();
     }
 }

@@ -184,13 +184,16 @@ public class MainActivity extends AppCompatActivity {
         networkStateReceiver.addListener(new NetworkStateReceiver.NetworkStateReceiverListener() {
             @Override
             public void onNetworkAvailable() {
-                Log.e("Sdada", "Network is available");
+                isNetworkAvailable = true;
+                if(shouldRetry) {
+                    Log.e("Connection", "Retrying...");
+                    loadMoreUsers();
+                }
             }
 
             @Override
             public void onNetworkUnavailable() {
-
-                Log.e("Sdada", "Network NOT available");
+                isNetworkAvailable = false;
             }
         });
 
@@ -203,6 +206,11 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         unregisterReceiver(networkStateReceiver);
     }
+    private boolean isNetworkAvailable = false;
+
+    //this variable is a flag to check once the
+    //connection is regained.
+    private boolean shouldRetry = false;
 
     private boolean isLoading = false;
     private boolean isSearching = false;
@@ -259,8 +267,18 @@ public class MainActivity extends AppCompatActivity {
         usersAdapter.notifyDataSetChanged();
     }
 
+
+
     void loadMoreUsers(){
         if(isLoading)return;
+
+//        if(!isNetworkAvailable){
+//            connectionLost();
+//            return;
+//        }
+
+
+        shouldRetry = false;
 
         String url =  Constants.GET_USERS_URL +nextPageIndex;
         pbLoading.setVisibility(View.VISIBLE);
@@ -303,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
             usersAdapter.setData(users);
 
 
-            //set since paramater for next batch of users from the last user id
+            //set since parameter for next batch of users from the last user id
             nextPageIndex = r.get(r.size()-1).id;
             usersAdapter.notifyDataSetChanged();
 
@@ -313,6 +331,7 @@ public class MainActivity extends AppCompatActivity {
             Log.e("Volley err", error!=null? Objects.requireNonNull(error.getLocalizedMessage()) : "Null error");
             isLoading = false;
             pbLoading.setVisibility(View.GONE);
+            shouldRetry = true;
 
 
             if(
@@ -324,12 +343,21 @@ public class MainActivity extends AppCompatActivity {
 
 
                 //TODO Network is lost, do some checks
+                connectionLost();
+
             }
 
         });
 
         queue.addQueue(request);
     }
+
+    void connectionLost(){
+        pbLoading.setVisibility(View.GONE);
+        llLoadFailed.setVisibility(View.VISIBLE);
+    }
+
+
     @SuppressLint("StaticFieldLeak")
     void updateUsers(){
         new AsyncTask<Void,Void,Void>(){

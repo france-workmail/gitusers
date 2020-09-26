@@ -25,8 +25,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:background="#fff">
+            app:layout_constraintTop_toTopOf="parent">
 
             <EditText
                 android:id="@+id/etSearch"
@@ -35,10 +34,13 @@
                 android:hint="Search username or id"
                 android:inputType="textPersonName"
                 android:singleLine="false"
-                android:layout_margin="4dp"
-                android:background="@android:color/transparent"
-                android:textColor="@android:color/black"
-                android:textSize="12sp" />
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:background="@drawable/bg_rounded_blue"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/white"
+                android:textCursorDrawable="@null"
+                android:textSize="16sp" />
         </androidx.cardview.widget.CardView>
 
 
@@ -54,6 +56,7 @@
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
         android:clipToPadding="true"
         app:layout_constraintBottom_toTopOf="@+id/llLoadFailed"
         app:layout_constraintEnd_toEndOf="parent"

@@ -3,6 +3,8 @@ package com.snarfapps.gitusers;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -16,6 +18,7 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
@@ -82,6 +85,18 @@ public class MainActivity extends AppCompatActivity {
 
         rvUsers = findViewById(R.id.rvUsers);
         rvUsers.setLayoutManager(new LinearLayoutManager(this));
+
+        //Set Recycler item customization
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
+        ShapeDrawable shapeDrawableForDivider = new ShapeDrawable(new RectShape());
+        int dividerThickness = 10; // (int) (SomeOtherView.getHeight() * desiredPercent);
+        shapeDrawableForDivider.setIntrinsicHeight(dividerThickness);
+        shapeDrawableForDivider.setAlpha(0);
+        dividerItemDecoration.setDrawable(shapeDrawableForDivider);
+        rvUsers.addItemDecoration(dividerItemDecoration);
+
+
+
 
         //use dummy users for shimmering effect
         usersAdapter = new GitUsersAdapter(shimmerUsers);

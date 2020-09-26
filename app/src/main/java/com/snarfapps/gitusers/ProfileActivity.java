@@ -75,7 +75,9 @@ public class ProfileActivity extends AppCompatActivity {
 
             // Add the notes to user info.
             // then save the changes to db
-            userDetail.notes = etNotes.getText().toString();
+            String notes = etNotes.getText().toString();
+            if(!notes.isEmpty())
+                userDetail.notes = notes;
             saveUserDetail();
         });
         ibBack.setOnClickListener(v -> finish());
@@ -92,7 +94,7 @@ public class ProfileActivity extends AppCompatActivity {
                     Type typeToken = new TypeToken<UserDetail>(){}.getType();
 
 
-                    String notesHolder = "";
+                    String notesHolder = null;
                     //get the notes first so it wont be overridden by new data
                     if(userDetail!=null && userDetail.notes!=null)
                         notesHolder = userDetail.notes;

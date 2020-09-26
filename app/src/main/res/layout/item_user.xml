@@ -37,14 +37,14 @@
                     android:id="@+id/ibNotes"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
-                    android:scaleType="centerCrop"
                     android:background="@android:color/transparent"
+                    android:scaleType="centerCrop"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.96"
                     app:layout_constraintStart_toEndOf="@+id/cardView"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@android:drawable/ic_menu_my_calendar" />
+                    app:srcCompat="@mipmap/ic_pencil" />
 
                 <TextView
                     android:id="@+id/tvUserId"
@@ -80,9 +80,10 @@
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:layout_marginStart="4dp"
+                    android:layout_marginTop="8dp"
+                    android:background="#d3d3d3"
                     android:clipChildren="true"
                     app:cardCornerRadius="50dp"
-                    android:background="#d3d3d3"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
@@ -93,7 +94,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="start"
                         android:layout_weight="1"
-                        android:background="#d3d3d3"/>
+                        android:background="#d3d3d3" />
 
                 </androidx.cardview.widget.CardView>
 

@@ -20,7 +20,6 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:cardCornerRadius="3dp"
             app:cardElevation="2dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -40,6 +39,7 @@
                 android:textColor="@android:color/white"
                 android:textColorHint="@android:color/white"
                 android:textCursorDrawable="@null"
+                android:drawableStart="@android:drawable/ic_menu_search"
                 android:textSize="16sp" />
         </androidx.cardview.widget.CardView>
 

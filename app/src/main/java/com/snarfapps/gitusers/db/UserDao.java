@@ -6,10 +6,8 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
 import com.snarfapps.gitusers.models.User;
+import com.snarfapps.gitusers.models.UserDetail;
 
-import org.json.JSONArray;
-
-import java.util.ArrayList;
 import java.util.List;
 
 @Dao
@@ -22,9 +20,29 @@ public interface UserDao {
     List<User> searchUserByName(String searchKey);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertAllUsers(User...users);
+    void insertAllUsers(List<User> users);
 
-    @Insert
-    void addUser(User user);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertUserDetail(UserDetail userDetail);
+
+    @Query("Select * from userDetail WHERE id LIKE:userId")
+    UserDetail getUserDetail(int userId);
+
+
+    @Query("Select * from userdetail where id LIKE:userId AND notes NOT NULL")
+    boolean userHasNotes(String userId);
+
+    @Query("Select * from userdetail")
+    List<UserDetail> getAllUserDetails();
+
+    /**
+     * Search using user and userdetail ententy
+     */
+
+//    @Query("Select * from user INNER JOIN userDetail ON notes LIKE:searchKey WHERE login LIKE:searchKey")
+    //TODO set foreign keys for userdetail from user
+    @Query("Select * from user INNER JOIN userDetail on user.id = userDetail.id WHERE user.login LIKE:searchKey OR userDetail.notes LIKE:searchKey")
+    List<User> searchUserByNameOrNote(String searchKey);
 
 }

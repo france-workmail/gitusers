@@ -32,6 +32,7 @@ public interface UserDao {
 
 
     @Query("Select * from userdetail where id LIKE:userId AND notes NOT NULL")
+//    @Query("Select * from userdetail where id LIKE:userId AND notes NOT LIKE '' ")
     boolean userHasNotes(String userId);
 
     @Query("Select * from userdetail")
@@ -43,8 +44,17 @@ public interface UserDao {
 
 //    @Query("Select * from user INNER JOIN userDetail ON notes LIKE:searchKey WHERE login LIKE:searchKey")
     //TODO set foreign keys for userdetail from user
-    @Query("Select * from user INNER JOIN userDetail ON user.id == userDetail.id WHERE " +
-            "user.login LIKE  :searchKey   OR userDetail.notes LIKE '%' ||:searchKey || '%'")
+//    @Query("Select * from user INNER JOIN userDetail ON user.id == userDetail.id WHERE " +
+//            "user.login LIKE  :searchKey   OR userDetail.notes LIKE '%' ||:searchKey || '%'")
+
+//    @Query("Select * from user u INNER JOIN userDetail ud ON u.id = ud.id WHERE " +
+//            "u.login LIKE   '%' ||:searchKey|| '%'  OR ud.notes LIKE  '%' ||:searchKey|| '%' ")
+
+//    @Query("Select * from user u INNER JOIN userDetail ud ON u.id = ud.id or ud.id IS NULL WHERE " +
+//            "u.login LIKE   '%' ||:searchKey|| '%' ")//" OR ud.notes LIKE  '%' ||:searchKey|| '%' ")
+
+    @Query("Select * from user u where EXISTS (Select null from userdetail ud" +
+            " where u.id = ud.id and ud.notes LIKE '%' || :searchKey || '%') OR u.login LIKE '%' ||:searchKey||'%'")
     List<User> searchUserByNameOrNote(String searchKey);
 
 

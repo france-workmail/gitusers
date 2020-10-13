@@ -15,6 +15,10 @@ public class UserDetail {
     @SerializedName("id")
     public int id;
 
+    @ColumnInfo(name = "login")
+    @SerializedName("login")
+    public String login;
+
 
     @ColumnInfo(name = "avatar_url")
     @SerializedName("avatar_url")

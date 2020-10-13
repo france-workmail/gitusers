@@ -3,11 +3,13 @@ package com.snarfapps.gitusers;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -108,10 +110,7 @@ public class MainActivity extends AppCompatActivity {
         llLoadFailed = findViewById(R.id.llLoadFailed);
         llLoadFailed.setOnClickListener(v -> loadMoreUsers());
 
-        if(users.size() == 0)
-            new InitiateDbTask().execute();
-        else
-            loadMoreUsers();
+
 
 
         rvUsers.setOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -159,8 +158,13 @@ public class MainActivity extends AppCompatActivity {
                 if(s.length() == 0) {
                     isSearching = false;
                     //return the data set
-                    usersAdapter.setData(users);
-                    usersAdapter.notifyDataSetChanged();
+                    if(users.size() == 0) {
+                        new InitiateDbTask().execute();
+                    }
+                    else{
+                        usersAdapter.setData(users);
+                        usersAdapter.notifyDataSetChanged();
+                    }
                 }
 
             }
@@ -199,7 +203,37 @@ public class MainActivity extends AppCompatActivity {
 
         registerReceiver(networkStateReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
+
+//        Log.e("instance state","Instance state not null");
+        if(savedInstanceState != null && savedInstanceState.getBoolean(IS_SEARCHING) ){
+                String key = savedInstanceState.getString(SEARCH_KEY);
+                scrollToPosition = savedInstanceState.getInt(LIST_POSITION);
+                isFromOrientationChange = savedInstanceState.getBoolean(IS_SEARCH_FROM_ORIENTATION_CHANGE);
+
+                Log.e("Search", "IsSearching: " + savedInstanceState.getBoolean(IS_SEARCHING));
+                searchUsers(key);
+
+        }
+        else{
+            if(users.size() == 0)
+                new InitiateDbTask().execute();
+            else
+                loadMoreUsers();
+        }
+
+
     }
+
+    /**
+     * Instance state keys constants
+     */
+    String IS_SEARCHING = "isSearching";
+    String SEARCH_KEY = "searchKey";
+    String LIST_POSITION = "adapterPosition";
+    String IS_SEARCH_FROM_ORIENTATION_CHANGE = "isSearchFromOrientationChange";
+    boolean isFromOrientationChange = false;
+    int scrollToPosition = 0;
+
 
     @Override
     protected void onDestroy() {
@@ -279,6 +313,9 @@ public class MainActivity extends AppCompatActivity {
 
                 usersAdapter.setData(users);
                 usersAdapter.notifyDataSetChanged();
+                if(isFromOrientationChange){
+                    rvUsers.scrollToPosition(Math.max(scrollToPosition, 0));
+                }
             }
         }.execute();
 
@@ -286,6 +323,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        //Save search result
+        outState.putBoolean(IS_SEARCHING, isSearching);
+        if(isSearching){
+            outState.putString(SEARCH_KEY, ((EditText)findViewById(R.id.etSearch)).getText().toString());
+            outState.putInt(LIST_POSITION,((LinearLayoutManager) rvUsers.getLayoutManager()).findFirstVisibleItemPosition());
+            outState.putBoolean(IS_SEARCH_FROM_ORIENTATION_CHANGE, true);
+        }
+    }
 
     void loadMoreUsers(){
         if(isLoading)return;
